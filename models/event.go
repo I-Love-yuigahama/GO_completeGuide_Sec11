@@ -1,22 +1,23 @@
 package models
 
 import (
+	// "testing/quick"
 	"time"
 
 	"example.com/tut/db"
+	// "github.com/pelletier/go-toml/query"
 	// "github.com/pelletier/go-toml/query"
 )
 
 type Event struct {
 	ID          int64
 	Name        string `binding:"required"`
-	Email       string
 	Description string    `binding:"required"`
 	Location    string    `binding:"required"`
 	DateTime    time.Time `binding:"required"`
-	UserID      int
+	UserID      int64
 }
-
+//slices
 var event = []Event{}
 
 // methods
@@ -88,4 +89,47 @@ func GetEventByID(id int64)(*Event,error){
 			return nil, err
 		}
 	return  &event,nil
+}
+
+func (data *Event) Update()(error){
+
+	query:=`
+	UPDATE events
+	SET	name =? , description = ? , location =? , dateTime=?
+	WHERE id = ?
+	`
+
+	stmt,err:=db.DB.Prepare(query)
+
+	if err != nil {
+			return err
+		}
+
+		defer stmt.Close()
+
+		_,err = stmt.Exec(data.Name, data.Description, data.Location, data.DateTime,data.ID)
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+
+}
+
+func (data *Event) Delete()(error){
+	query:=`
+	DELETE FROM events WHERE id = ?
+	`
+	stmt,err:=db.DB.Prepare(query)
+	
+	if err != nil {
+			return err
+		}
+
+		defer stmt.Close()
+
+		_,err = stmt.Exec(data.ID)
+
+		return err
 }
