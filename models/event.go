@@ -1,0 +1,91 @@
+package models
+
+import (
+	"time"
+
+	"example.com/tut/db"
+	// "github.com/pelletier/go-toml/query"
+)
+
+type Event struct {
+	ID          int64
+	Name        string `binding:"required"`
+	Email       string
+	Description string    `binding:"required"`
+	Location    string    `binding:"required"`
+	DateTime    time.Time `binding:"required"`
+	UserID      int
+}
+
+var event = []Event{}
+
+// methods
+func (data *Event) Save() error {
+	query := `
+	INSERT INTO events(name,description,location,dateTime, user_id) 
+	VALUES (?,?,?,?,?)
+	`
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	//if have query that changes stuff is Exec
+	//if have query fetch data is  Query
+	// Prepare() + stmt.Exec() (when we inserted data into the database)
+
+	defer stmt.Close()
+
+	result, err := stmt.Exec(data.Name, data.Description, data.Location, data.DateTime, data.UserID)
+	if err != nil {
+		return err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	data.ID = id
+	return nil
+	// event = append(event, *data)
+}
+
+func GetEvents() ([]Event, error) {
+
+	query := "SELECT * FROM events"
+	rows, err := db.DB.Query(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var events []Event
+
+	for rows.Next() {
+		var event Event
+		err := rows.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.DateTime, &event.UserID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, event)
+	}
+
+	return events, nil
+}
+
+func GetEventByID(id int64)(*Event,error){
+
+	row := db.DB.QueryRow("SELECT * FROM events WHERE id = ?", id)
+	
+	var event Event
+	err:= row.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.DateTime, &event.UserID)
+	if err != nil {
+			return nil, err
+		}
+	return  &event,nil
+}
