@@ -6,6 +6,7 @@ import (
 
 	// "example.com/tut/db"
 	"example.com/tut/models"
+	// "go.mongodb.org/mongo-driver/v2/event"
 	// "example.com/tut/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -63,10 +64,16 @@ func updateEvent(context *gin.Context){
 		context.JSON(http.StatusInternalServerError,gin.H{"message": "could get data"}) 
 	}
 
-	_,err = models.GetEventByID(eventId)
+	userId:=context.GetInt16("userId")
+	event,err := models.GetEventByID(eventId)
 
 	if err != nil{
 		context.JSON(http.StatusInternalServerError,gin.H{"message": "could get id"}) 
+	}
+
+	if int16(event.UserID) != userId{
+		context.JSON(http.StatusUnauthorized,gin.H{"message": "not auth to update event,Bitch"}) 
+			return 
 	}
 
 	var updateEvent models.Event
@@ -88,12 +95,19 @@ func updateEvent(context *gin.Context){
 func deleteEvent(context *gin.Context){
 
 	eventId,err:= strconv.ParseInt(context.Param("id"),10, 64)
+	userId:=context.GetInt16("userId")
+
 
 	if err != nil{
 		context.JSON(http.StatusInternalServerError,gin.H{"message": "could get data"}) 
 	}
 
 	event ,err := models.GetEventByID(eventId)
+
+	if int16(event.UserID) != userId{
+		context.JSON(http.StatusUnauthorized,gin.H{"message": "not auth to Delete event,Bitch"}) 
+			return 
+	}
 
 	if err != nil{
 		context.JSON(http.StatusInternalServerError,gin.H{"message": "could get id"}) 

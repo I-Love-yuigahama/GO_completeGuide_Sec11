@@ -7,6 +7,7 @@ import (
 	"example.com/tut/db"
 	// "github.com/pelletier/go-toml/query"
 	// "github.com/pelletier/go-toml/query"
+	// "github.com/pelletier/go-toml/query"
 )
 
 type Event struct {
@@ -133,3 +134,33 @@ func (data *Event) Delete()(error){
 
 		return err
 }
+
+func (data *Event) Register(userID int64)(error){
+	query := "INTERT INTO registration(event_id, user_id) VALUES (?,?)"
+ 	stmt,err:=	db.DB.Prepare(query)
+
+	if err!= nil{
+		return err
+	}
+
+	defer stmt.Close()
+
+ _,err =	stmt.Exec(data.ID,data.UserID)
+
+ return err
+
+}
+
+func(data *Event) CancelRehistration(userId int64)(error){
+	query := "DELETE FROM registration WHERE event_id =? AND user_id = ?)"
+ 	stmt,err:=	db.DB.Prepare(query)
+	if err!= nil{
+		return err
+	}
+
+	defer stmt.Close()
+
+	_,err =	stmt.Exec(data.ID,data.UserID)
+
+	return err
+	}

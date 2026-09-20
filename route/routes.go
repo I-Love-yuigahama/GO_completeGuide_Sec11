@@ -23,6 +23,10 @@ func RegisterRoutes(server *gin.Engine){
 
 	auth.POST( "/events", middlewares.Authenticate,createEvent)
 
+	auth.POST("/events/:id/register",registerForEvent)
+
+	auth.DELETE("/events/:id/register",cancelRehistration)
+
 	// server.POST("/events", middlewares.Authenticate,createEvent)
 
 	// server.PUT("/events/:id",updateEvent)
